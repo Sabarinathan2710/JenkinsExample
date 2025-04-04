@@ -9,4 +9,8 @@ public class JenkinsController {
 	public String sayHello() {
 		return "Hello World! Welcome to jenkins execution";
 	}
+	@GetMapping("/get")
+	public String sayHi() {
+		return "Hi da..! You're using the docker automation";
+	}
 }
