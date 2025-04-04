@@ -1,16 +1,46 @@
-pipeline{
+pipeline {
     agent any
-        tools{
-            jdk 'JDK 21'
-            maven 'Maven'
+
+    tools {
+        jdk 'JDK 21'
+        maven 'Maven'
+    }
+
+    stages {
+        stage('Build Maven') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/Sabarinathan2710/JenkinsExample.git']]
+                )
+                bat 'mvn clean install'
+            }
         }
-        stages{
-            stage('Build Maven'){
-                steps{
-                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Sabarinathan2710/JenkinsExample.git']])
-                    bat 'mvn clean install'
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    bat 'docker build -t sabari2710/app .'
                 }
             }
-           
         }
+
+        stage('Push Image to DockerHub') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'DOC_TOKEN',
+                            passwordVariable: 'DOCKER_PASS',
+                            usernameVariable: 'DOCKER_USER'
+                        )
+                    ]) {
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                    }
+                    bat 'docker push sabari2710/app'
+                }
+            }
+        }
+    }
 }
